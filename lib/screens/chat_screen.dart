@@ -62,7 +62,7 @@ class _ChatScreenState extends State<ChatScreen> {
     try {
       final request = http.Request(
         'POST',
-        Uri.parse('http://192.168.42.203:8000/api/chat/stream/'),
+        Uri.parse('http://192.168.137.239:8000/api/chat/stream/'),
       );
       request.headers['Content-Type'] = 'application/json';
       request.body = jsonEncode(payload);
@@ -161,7 +161,7 @@ class _ChatScreenState extends State<ChatScreen> {
         backgroundColor: const Color(0xFF0A7B5A), // Vert profond
         foregroundColor: Colors.white,
         elevation: 0,
-        title: const Text('💬 Assistant IA', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text('💬 Assistant IA AgriSmart', style: TextStyle(fontWeight: FontWeight.bold)),
         actions: [
           TextButton.icon(
             onPressed: _newConversation,
