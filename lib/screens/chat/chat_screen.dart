@@ -12,6 +12,8 @@ import 'package:lottie/lottie.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:just_audio/just_audio.dart';
 
+import '../../constants/api_constants.dart';
+
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
 
@@ -39,12 +41,13 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   XFile? _selectedImage;
   String? _recordedAudioPath;
 
-  String _sessionId = 'flutter_default';
+  String _sessionId = 'flutter_default_${DateTime.now().millisecondsSinceEpoch}';
 
   @override
   void initState() {
     super.initState();
 
+    // Support audio
     if (kIsWeb) {
       _audioSupported = false;
     } else if (Platform.isAndroid || Platform.isIOS) {
@@ -54,12 +57,14 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       _audioSupported = false;
     }
 
+    // Message de bienvenue
     _messages.add({
       'text':
           '👋 Salut ! Je suis ton assistant AgriSmart.\nTu peux m\'envoyer du texte, des photos${_audioSupported ? ' ou des notes vocales 🎤' : ''} !',
       'isBot': true,
     });
 
+    // Animation de bienvenue
     _welcomeController = AnimationController(
       duration: const Duration(milliseconds: 800),
       vsync: this,
@@ -118,7 +123,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     _scrollToBottom();
 
     try {
-      var uri = Uri.parse('http://192.168.137.239:8000/api/chat/stream/');
+      var uri = Uri.parse('${ApiConstants.baseUrl}${ApiConstants.chatStreamEndpoint}');
       var request = http.MultipartRequest('POST', uri);
 
       request.fields['message'] = text;
@@ -187,7 +192,6 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       if (!hasReceivedContent && accumulatedText.isEmpty) {
         _addBotMessage('❌ Aucune réponse reçue. Le serveur IA est peut-être surchargé.');
       }
-
     } on TimeoutException {
       _addBotMessage('⏳ Temps d’attente dépassé.\nRéessaie dans quelques minutes.');
     } catch (e) {
@@ -215,7 +219,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       _sessionId = 'flutter_${DateTime.now().millisecondsSinceEpoch}';
       _messages.clear();
       _messages.add({
-        'text': '👋 Nouvelle conversation démarrée !',
+        'text': '👋 Nouvelle conversation démarrée !\nComment puis-je t\'aider ?',
         'isBot': true,
       });
     });
@@ -279,32 +283,65 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFEDEDED),
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0A7B5A),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
         foregroundColor: Colors.white,
-        title: const Text('Assistant IA AgriSmart', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const SizedBox.shrink(),
         actions: [
           TextButton.icon(
             onPressed: _newConversation,
             icon: const Icon(Icons.refresh, size: 20),
-            label: const Text('Nouveau'),
+            label: const Text('Nouvelle discussion'),
             style: TextButton.styleFrom(foregroundColor: Colors.white),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 16),
         ],
       ),
       body: Stack(
         children: [
           Column(
             children: [
+              // === EN-TÊTE STYLE DIAGNOSTICSCREEN ===
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.fromLTRB(24, 60, 24, 32),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Colors.green[600]!, Colors.green[700]!],
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      "Assistant IA AgriSmart",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      "Posez-moi toutes vos questions agricoles",
+                      style: TextStyle(color: Colors.green[100]),
+                    ),
+                  ],
+                ),
+              ),
+
+              // === LISTE DES MESSAGES ===
               Expanded(
                 child: ListView.builder(
                   controller: _scrollController,
                   padding: const EdgeInsets.all(12),
                   itemCount: _messages.length + (_isTyping ? 1 : 0),
                   itemBuilder: (context, index) {
-                    if (index == _messages.length && _isTyping) return const AnimatedTypingIndicator();
+                    if (index == _messages.length && _isTyping) {
+                      return const AnimatedTypingIndicator();
+                    }
                     final msg = _messages[index];
                     return MessageBubble(
                       text: msg['text'] ?? '',
@@ -316,6 +353,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                 ),
               ),
 
+              // === PRÉVISUALISATION IMAGE / AUDIO ===
               if (_selectedImage != null || _recordedAudioPath != null)
                 Container(
                   color: Colors.white,
@@ -329,7 +367,12 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                             children: [
                               ClipRRect(
                                 borderRadius: BorderRadius.circular(12),
-                                child: Image.file(File(_selectedImage!.path), width: 100, height: 100, fit: BoxFit.cover),
+                                child: Image.file(
+                                  File(_selectedImage!.path),
+                                  width: 100,
+                                  height: 100,
+                                  fit: BoxFit.cover,
+                                ),
                               ),
                               Positioned(
                                 top: -8,
@@ -369,6 +412,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                   ),
                 ),
 
+              // === BARRE D'ENTRÉE ===
               Container(
                 color: Colors.white,
                 padding: EdgeInsets.only(
@@ -380,8 +424,14 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                   top: false,
                   child: Row(
                     children: [
-                      IconButton(icon: const Icon(Icons.attach_file, color: Colors.grey), onPressed: _pickImage),
-                      IconButton(icon: const Icon(Icons.camera_alt, color: Colors.grey), onPressed: _takePhoto),
+                      IconButton(
+                        icon: const Icon(Icons.attach_file, color: Colors.grey),
+                        onPressed: _pickImage,
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.camera_alt, color: Colors.grey),
+                        onPressed: _takePhoto,
+                      ),
                       Expanded(
                         child: Container(
                           margin: const EdgeInsets.symmetric(vertical: 8),
@@ -428,47 +478,47 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
             ],
           ),
 
+          // === ANIMATION DE BIENVENUE ===
           if (_showWelcomeAnimation)
-  FadeTransition(
-    opacity: _welcomeFadeAnimation,
-    child: Center(
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          // L'ombre ovale en dessous
-          Container(
-            width: 220,  // Ajuste selon la taille de ton animation
-            height: 60,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(110), // Très arrondi pour un effet ovale doux
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.25),
-                  blurRadius: 40,
-                  spreadRadius: 10,
-                  offset: const Offset(0, 20), // Décalage vers le bas pour simuler la projection
+            FadeTransition(
+              opacity: _welcomeFadeAnimation,
+              child: Center(
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Container(
+                      width: 220,
+                      height: 60,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(110),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.25),
+                            blurRadius: 40,
+                            spreadRadius: 10,
+                            offset: const Offset(0, 20),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Lottie.asset(
+                      'assets/animations/chatbot_wave.json',
+                      width: 320,
+                      height: 320,
+                      fit: BoxFit.contain,
+                      repeat: true,
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
-          ),
-          // L'animation Lottie par-dessus
-          Lottie.asset(
-            'assets/animations/chatbot_wave.json',
-            width: 320,
-            height: 320,
-            fit: BoxFit.contain,
-            repeat: true,
-          ),
-        ],
-      ),
-    ),
-  ),
         ],
       ),
     );
   }
 }
 
+// === INDICATEUR DE TYPAGE ===
 class AnimatedTypingIndicator extends StatefulWidget {
   const AnimatedTypingIndicator({super.key});
 
@@ -539,13 +589,13 @@ class _AnimatedTypingIndicatorState extends State<AnimatedTypingIndicator> with 
               }),
             ),
           ),
-          const SizedBox(width: 44),
         ],
       ),
     );
   }
 }
 
+// === BULLE DE MESSAGE ===
 class MessageBubble extends StatefulWidget {
   final String text;
   final bool isBot;

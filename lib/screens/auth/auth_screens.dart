@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../main.dart';
-import '../widgets/common_widgets.dart';
+import '../../main.dart';
+import '../../widgets/common_widgets.dart';
 
 // --- Écran de Connexion (Login) ---
 class LoginScreen extends StatelessWidget {

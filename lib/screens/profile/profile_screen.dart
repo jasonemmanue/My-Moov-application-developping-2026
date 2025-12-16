@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../widgets/common_widgets.dart';
-import 'auth_screens.dart'; // Import pour la redirection vers LoginScreen
+import '../../widgets/common_widgets.dart';
+import '../auth/auth_screens.dart'; // Import pour la redirection vers LoginScreen
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});

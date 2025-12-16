@@ -5,8 +5,8 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 import 'weather_detail_screen.dart'; // ← Import de la nouvelle page détaillée
-import '../widgets/common_widgets.dart';
-import '../widgets/quick_action_card.dart';
+import '../../widgets/common_widgets.dart';
+import '../../widgets/quick_action_card.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});

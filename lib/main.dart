@@ -1,11 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'screens/home_screen.dart';
-import 'screens/diagnostic_screen.dart';
-import 'screens/market_screen.dart';
-import 'screens/chat_screen.dart';
-import 'screens/profile_screen.dart';
-import 'screens/auth_screens.dart'; // Import des écrans d'authentification
+import 'screens/screens.dart'; // Import des écrans d'authentification
 
 void main() {
   runApp(const AgriSmartApp());
