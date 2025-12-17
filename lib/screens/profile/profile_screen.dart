@@ -8,6 +8,7 @@ import '../../services/user_service.dart';
 import '../auth/auth_screens.dart';
 import '../products/my_products_screen.dart';
 import '../marketplace/my_purchases_screen.dart';
+import '../marketplace/my_sales_screen.dart';
 import '../../constants/api_constants.dart';
 
 // Modèle de données utilisateur
@@ -64,6 +65,10 @@ class User {
 
   bool get isBuyer {
     return userType == 'buyer' || userType == 'both' || userType == 'admin';
+  }
+
+  bool get isBoth {
+    return userType == 'both';
   }
 }
 
@@ -320,9 +325,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                 const SizedBox(height: 24),
 
-                // Section Producteur (seulement pour les producteurs)
+                // ═══════════════════════════════════════════════════════════
+                // Section Producteur (pour producer, both, admin)
+                // ═══════════════════════════════════════════════════════════
                 if (user.isProducer) ...[
                   _buildSectionTitle("Espace producteur"),
+
+                  // Mes produits
                   _buildProfileItem(
                     context,
                     Icons.inventory_2_outlined,
@@ -352,6 +361,38 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                     ),
                   ),
+
+                  // Historique des ventes
+                  _buildProfileItem(
+                    context,
+                    Icons.receipt_long,
+                    "Historique des ventes",
+                    null,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const MySalesScreen(),
+                        ),
+                      );
+                    },
+                    badge: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.purple,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Text(
+                        'Ventes',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+
                   _buildProfileItem(
                     context,
                     Icons.bar_chart,
@@ -361,9 +402,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   const SizedBox(height: 24),
                 ],
 
-                // Section Acheteur (pour tous les acheteurs)
+                // ═══════════════════════════════════════════════════════════
+                // Section Acheteur (pour buyer, both, admin)
+                // ═══════════════════════════════════════════════════════════
                 if (user.isBuyer) ...[
-                  _buildSectionTitle("Mes achats"),
+                  _buildSectionTitle("Espace acheteur"),
                   _buildProfileItem(
                     context,
                     Icons.shopping_bag,
@@ -384,7 +427,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: const Text(
-                        'Voir',
+                        'Achats',
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 10,

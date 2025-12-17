@@ -130,7 +130,7 @@ class MainScaffold extends StatefulWidget {
 
 class _MainScaffoldState extends State<MainScaffold> {
   int _currentIndex = 0;
-  bool _isProducer = false;
+  String _userType = 'buyer';
   bool _isLoading = true;
 
   @override
@@ -140,29 +140,39 @@ class _MainScaffoldState extends State<MainScaffold> {
   }
 
   Future<void> _loadUserType() async {
-    final isProducer = await UserService.isProducer();
+    final userData = await UserService.getUserData();
     setState(() {
-      _isProducer = isProducer;
+      _userType = userData?['user_type'] ?? 'buyer';
       _isLoading = false;
     });
   }
 
   /// Liste des écrans selon le type d'utilisateur
   List<Widget> get _screens {
-    if (_isProducer) {
-      // Producteur / Both / Admin → 5 pages avec Diagnostic + Marchés (prix)
+    if (_userType == 'both') {
+      // Both (Producteur ET Acheteur) → 6 pages
       return const [
         HomeScreen(),
         DiagnosticScreen(),
-        MarketScreen(), // ← Écran prix du marché pour producteurs
+        MarketScreen(),        // Marchés (prix)
+        MarketplaceScreen(),   // Achats (marketplace)
+        ChatScreen(),
+        ProfileScreen(),
+      ];
+    } else if (_userType == 'producer' || _userType == 'admin') {
+      // Producteur uniquement → 5 pages avec Marchés
+      return const [
+        HomeScreen(),
+        DiagnosticScreen(),
+        MarketScreen(),
         ChatScreen(),
         ProfileScreen(),
       ];
     } else {
-      // Acheteur uniquement → 4 pages sans Diagnostic + Achats (marketplace)
+      // Acheteur uniquement → 4 pages avec Achats
       return const [
         HomeScreen(),
-        MarketplaceScreen(), // ← Écran achats pour acheteurs
+        MarketplaceScreen(),
         ChatScreen(),
         ProfileScreen(),
       ];
@@ -171,8 +181,8 @@ class _MainScaffoldState extends State<MainScaffold> {
 
   /// Items de la barre de navigation selon le type d'utilisateur
   List<BottomNavigationBarItem> get _navItems {
-    if (_isProducer) {
-      // Producteur / Both / Admin → 5 items avec "Marchés"
+    if (_userType == 'both') {
+      // Both → 6 items
       return const [
         BottomNavigationBarItem(
           icon: Icon(Icons.home),
@@ -183,8 +193,36 @@ class _MainScaffoldState extends State<MainScaffold> {
           label: 'Diagnostic',
         ),
         BottomNavigationBarItem(
-          icon: Icon(Icons.trending_up), // Icône prix du marché
-          label: 'Marchés', // Label pour producteurs
+          icon: Icon(Icons.trending_up),
+          label: 'Marchés',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.shopping_cart),
+          label: 'Achats',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.message),
+          label: 'Chat',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.person),
+          label: 'Profil',
+        ),
+      ];
+    } else if (_userType == 'producer' || _userType == 'admin') {
+      // Producteur → 5 items avec "Marchés"
+      return const [
+        BottomNavigationBarItem(
+          icon: Icon(Icons.home),
+          label: 'Accueil',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.camera_alt),
+          label: 'Diagnostic',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.trending_up),
+          label: 'Marchés',
         ),
         BottomNavigationBarItem(
           icon: Icon(Icons.message),
@@ -196,15 +234,15 @@ class _MainScaffoldState extends State<MainScaffold> {
         ),
       ];
     } else {
-      // Acheteur uniquement → 4 items avec "Achats"
+      // Acheteur → 4 items avec "Achats"
       return const [
         BottomNavigationBarItem(
           icon: Icon(Icons.home),
           label: 'Accueil',
         ),
         BottomNavigationBarItem(
-          icon: Icon(Icons.shopping_cart), // Icône achats
-          label: 'Achats', // Label pour acheteurs
+          icon: Icon(Icons.shopping_cart),
+          label: 'Achats',
         ),
         BottomNavigationBarItem(
           icon: Icon(Icons.message),
